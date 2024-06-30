@@ -125,11 +125,20 @@ class MatchQuest:
 
         return response
 
+    def invite_claim(self, token, user_id):
+        url = "https://tgapp-api.matchain.io/api/tgapp/v1/point/invite/claim"
+        headers = self.headers()
+        headers["authorization"] = token
+        payload = json.dumps({"uid": user_id})
+
+        response = requests.post(url=url, headers=headers, data=payload)
+
+        return response
+
     def play_game(self, token):
         url = "https://tgapp-api.matchain.io/api/tgapp/v1/game/play"
         headers = self.headers()
         headers["authorization"] = token
-        first_call = True
 
         while True:
             response = requests.get(url=url, headers=headers)
@@ -138,29 +147,31 @@ class MatchQuest:
             if response.status_code != 200:
                 self.log(f"{red}Something went wrong. Please try to re-run!")
                 return False
-            if game_count <= 0:
-                if first_call:
-                    self.log(f"{yellow}You don't have a game ticket!")
-                    return False
-            try:
-                self.log(f"{yellow}Playing game...")
-                self.countdown(30)
-                point = random.randint(50, 100)
-                payload = json.dumps({"game_id": game_id, "point": point})
-                url_claim = "https://tgapp-api.matchain.io/api/tgapp/v1/game/claim"
-                res_game = requests.post(url=url_claim, headers=headers, data=payload)
-                if res_game.status_code != 200:
-                    self.log(f"{red}Play game failure!")
-                    continue
+            if game_id != "":
+                try:
+                    self.log(f"{yellow}Playing game...")
+                    time.sleep(30)
+                    point = random.randint(50, 100)
+                    payload = json.dumps({"game_id": game_id, "point": point})
+                    url_claim = "https://tgapp-api.matchain.io/api/tgapp/v1/game/claim"
+                    res_game = requests.post(
+                        url=url_claim, headers=headers, data=payload
+                    )
+                    if res_game.status_code != 200:
+                        self.log(f"{red}Play game failure!")
+                        continue
 
-                self.log(f"{green}Play game successful, earned {white}{point}")
-                self.log(f"{green}Game left: {white}{game_count}")
-                first_call = False
-                if game_count <= 0:
-                    self.log(f"{yellow}Run out of ticket!")
+                    self.log(f"{green}Play game successful, earned {white}{point}")
+                    self.log(f"{green}Game left: {white}{game_count}")
+                    if game_count <= 0:
+                        self.log(f"{yellow}Run out of ticket!")
+                        return False
+                except:
+                    self.log(f"{red}Play game error!")
                     return False
-            except:
-                self.log(f"{red}Play game error!")
+            else:
+                self.log(f"{yellow}No game ticket to play!")
+                return False
 
     def log(self, msg):
         now = datetime.now().isoformat(" ").split(".")[0]
@@ -219,13 +230,28 @@ class MatchQuest:
                     except Exception as e:
                         self.log(f"{red}Get reward error!!!")
 
+                    # Claim from ref
+                    try:
+                        self.log(f"{yellow}Trying to claim from ref...")
+                        invite_claim = self.invite_claim(
+                            token=token, user_id=user_id
+                        ).json()
+                        claim_from_ref = int(invite_claim["data"])
+                        if claim_from_ref != 0:
+                            self.log(
+                                f"{green}Claim from ref: {white}{claim_from_ref / 1000}"
+                            )
+                        else:
+                            self.log(f"{yellow}No point from ref!")
+                    except Exception as e:
+                        self.log(f"{red}Claim from ref error!!!")
+
                     # Claim
                     try:
                         self.log(f"{yellow}Trying to claim...")
-                        claim = self.claim(token=token, user_id=user_id).json()
-                        if claim["code"] == 400:
-                            self.log(f"{yellow}Not time to claim yet!")
-                        else:
+                        claim = self.claim(token=token, user_id=user_id)
+
+                        if claim.status_code == 200:
                             self.log(f"{green}Claim successful!")
                             # Balance
                             try:
@@ -242,16 +268,15 @@ class MatchQuest:
                             # Farming
                             try:
                                 self.log(f"{yellow}Trying to farm...")
-                                farming = self.farming(
-                                    token=token, user_id=user_id
-                                ).json()
-                                if farming["code"] == 400:
-                                    self.log(f"{yellow}Not time to farm yet!")
-                                else:
+                                farming = self.farming(token=token, user_id=user_id)
+                                if farming.status_code == 200:
                                     self.log(f"{green}Farm successful!")
+                                else:
+                                    self.log(f"{yellow}Not time to farm yet!")
                             except Exception as e:
                                 self.log(f"{red}Farming error!!!")
-
+                        else:
+                            self.log(f"{yellow}Not time to claim yet!")
                     except Exception as e:
                         self.log(f"{red}Claim error!!!")
 
@@ -270,6 +295,7 @@ class MatchQuest:
 
                 except Exception as e:
                     self.log(f"{red}Login error!!!")
+                    print(2)
 
             print()
             # Wait time
