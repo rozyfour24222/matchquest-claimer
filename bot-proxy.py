@@ -210,13 +210,13 @@ class MatchQuest:
             return None
 
     def main(self):
-        self.clear_terminal()
-        print(self.banner)
-        accounts = json.load(open(data_file, "r"))["accounts"]
-        num_acc = len(accounts)
-        self.log(self.line)
-        self.log(f"{green}Numer of account: {white}{num_acc}")
         while True:
+            self.clear_terminal()
+            print(self.banner)
+            accounts = json.load(open(data_file, "r"))["accounts"]
+            num_acc = len(accounts)
+            self.log(self.line)
+            self.log(f"{green}Numer of account: {white}{num_acc}")
             end_at_list = []
             for no, account in enumerate(accounts):
                 self.log(self.line)
@@ -256,22 +256,6 @@ class MatchQuest:
                     except Exception as e:
                         self.log(f"{red}Get balance error!!!")
 
-                    # Reward
-                    try:
-                        get_reward = self.get_reward(
-                            token=token, user_id=user_id, proxy_info=proxy_info
-                        ).json()
-                        end_at = (
-                            float(get_reward["data"]["next_claim_timestamp"]) / 1000
-                        )
-                        readable_time = datetime.fromtimestamp(end_at).strftime(
-                            "%Y-%m-%d %H:%M:%S"
-                        )
-                        self.log(f"{green}Farm end at: {white}{readable_time}")
-                        end_at_list.append(end_at)
-                    except Exception as e:
-                        self.log(f"{red}Get reward error!!!")
-
                     # Claim from ref
                     try:
                         self.log(f"{yellow}Trying to claim from ref...")
@@ -288,44 +272,6 @@ class MatchQuest:
                     except Exception as e:
                         self.log(f"{red}Claim from ref error!!!")
 
-                    # Claim
-                    try:
-                        self.log(f"{yellow}Trying to claim...")
-                        claim = self.claim(
-                            token=token, user_id=user_id, proxy_info=proxy_info
-                        )
-
-                        if claim.status_code == 200:
-                            self.log(f"{green}Claim successful!")
-                            # Balance
-                            try:
-                                get_balance = self.get_balance(
-                                    token=token, user_id=user_id, proxy_info=proxy_info
-                                ).json()
-                                balance = get_balance["data"]
-                                self.log(
-                                    f"{green}Balance after Claim: {white}{balance / 1000}"
-                                )
-                            except Exception as e:
-                                self.log(f"{red}Get balance error!!!")
-
-                            # Farming
-                            try:
-                                self.log(f"{yellow}Trying to farm...")
-                                farming = self.farming(
-                                    token=token, user_id=user_id, proxy_info=proxy_info
-                                )
-                                if farming.status_code == 200:
-                                    self.log(f"{green}Farm successful!")
-                                else:
-                                    self.log(f"{yellow}Not time to farm yet!")
-                            except Exception as e:
-                                self.log(f"{red}Farming error!!!")
-                        else:
-                            self.log(f"{yellow}Not time to claim yet!")
-                    except Exception as e:
-                        self.log(f"{red}Claim error!!!")
-
                     # Play game
                     if self.autogame:
                         self.play_game(token=token, proxy_info=proxy_info)
@@ -338,6 +284,68 @@ class MatchQuest:
                             self.log(f"{green}Current balance: {white}{balance / 1000}")
                         except Exception as e:
                             self.log(f"{red}Get balance error!!!")
+
+                    # Reward and Farming/Claim
+                    try:
+                        while True:
+                            get_reward = self.get_reward(
+                                token=token, user_id=user_id, proxy_info=proxy_info
+                            ).json()
+                            next_claim = get_reward["data"]["next_claim_timestamp"]
+                            if next_claim == 0:
+                                self.log(f"{yellow}Trying to farm...")
+                                farming = self.farming(
+                                    token=token, user_id=user_id, proxy_info=proxy_info
+                                )
+                                if farming.status_code != 200:
+                                    self.log(f"{red}Cannot process farming!")
+                                    continue
+                                else:
+                                    self.log(f"{green}Farm successful!")
+                            if next_claim > round(time.time() * 1000):
+                                self.log(f"{yellow}Not time to claim yet!")
+                                end_at = (
+                                    float(get_reward["data"]["next_claim_timestamp"])
+                                    / 1000
+                                )
+                                readable_time = datetime.fromtimestamp(end_at).strftime(
+                                    "%Y-%m-%d %H:%M:%S"
+                                )
+                                self.log(f"{green}Farm end at: {white}{readable_time}")
+                                end_at_list.append(end_at)
+                                break
+                            self.log(f"{yellow}Trying to claim...")
+                            claim = self.claim(
+                                token=token, user_id=user_id, proxy_info=proxy_info
+                            )
+                            if claim.status_code != 200:
+                                self.log(f"{red}Cannot claim right now!")
+                                break
+                            else:
+                                self.log(f"{green}Claim successful!")
+                                self.log(f"{yellow}Trying to farm...")
+                                farming = self.farming(
+                                    token=token, user_id=user_id, proxy_info=proxy_info
+                                )
+                                if farming.status_code != 200:
+                                    self.log(f"{red}Cannot process farming!")
+                                    continue
+                                else:
+                                    self.log(f"{green}Farm successful!")
+
+                            # Balance
+                            try:
+                                get_balance = self.get_balance(
+                                    token=token, user_id=user_id, proxy_info=proxy_info
+                                ).json()
+                                balance = get_balance["data"]
+                                self.log(
+                                    f"{green}Current balance: {white}{balance / 1000}"
+                                )
+                            except Exception as e:
+                                self.log(f"{red}Get balance error!!!")
+                    except Exception as e:
+                        self.log(f"{red}Get reward error!!!")
 
                 except Exception as e:
                     self.log(f"{red}Login error!!!")
