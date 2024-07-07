@@ -59,7 +59,7 @@ class MatchQuest:
         }
 
     def proxies(self, proxy_info):
-        return {"http": f"{proxy_info}"}
+        return {"http": f"{proxy_info}", "https": f"{proxy_info}"}
 
     # Clear the terminal
     def clear_terminal(self):
