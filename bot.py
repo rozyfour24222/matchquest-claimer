@@ -44,18 +44,20 @@ class MatchQuest:
 
     def headers(self):
         return {
-            "host": "tgapp-api.matchain.io",
-            "connection": "keep-alive",
-            "accept": "application/json, text/plain, */*",
-            "user-agent": "Mozilla/5.0 (Linux; Android 10; Redmi 4A / 5A Build/QQ3A.200805.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/86.0.4240.185 Mobile Safari/537.36",
-            "content-type": "application/json",
-            "origin": "https://tgapp.matchain.io",
-            "x-requested-with": "tw.nekomimi.nekogram",
-            "sec-fetch-site": "same-site",
-            "sec-fetch-mode": "cors",
-            "sec-fetch-dest": "empty",
-            "referer": "https://tgapp.matchain.io/",
-            "accept-language": "en,en-US;q=0.9",
+            "Accept": "application/json, text/plain, */*",
+            "Accept-Encoding": "gzip, deflate, br, zstd",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Content-Type": "application/json",
+            "Origin": "https://tgapp.matchain.io",
+            "Priority": "u=1, i",
+            "Referer": "https://tgapp.matchain.io/",
+            "Sec-Ch-Ua": '"Not/A)Brand";v="8", "Chromium";v="126", "Google Chrome";v="126"',
+            "Sec-Ch-Ua-Mobile": "?0",
+            "Sec-Ch-Ua-Platform": '"Windows"',
+            "Sec-Fetch-Dest": "empty",
+            "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Site": "same-site",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
         }
 
     # Clear the terminal
@@ -81,6 +83,16 @@ class MatchQuest:
                 "tg_login_params": data,
             }
         )
+        response = requests.post(url=url, headers=headers, data=payload)
+
+        return response
+
+    def get_profile(self, token, user_id):
+        url = "https://tgapp-api.matchain.io/api/tgapp/v1/user/profile"
+        headers = self.headers()
+        headers["authorization"] = token
+        payload = json.dumps({"uid": user_id})
+
         response = requests.post(url=url, headers=headers, data=payload)
 
         return response
@@ -200,13 +212,7 @@ class MatchQuest:
                     login = self.login(data=data).json()
                     token = login["data"]["token"]
                     user_id = login["data"]["user"]["uid"]
-                    first_name = login["data"]["user"]["first_name"]
-                    user_name = login["data"]["user"]["username"]
-                    invite_limit = login["data"]["user"]["invite_limit"]
-                    self.log(
-                        f"{green}User info: {white}{first_name} ({user_name} - {user_id})"
-                    )
-                    self.log(f"{green}Invite limit: {white}{invite_limit}")
+                    self.log(f"{green}User ID: {white}{user_id}")
 
                     # Balance
                     try:
@@ -262,6 +268,7 @@ class MatchQuest:
                                     continue
                                 else:
                                     self.log(f"{green}Farm successful!")
+                                    break
                             if next_claim > round(time.time() * 1000):
                                 self.log(f"{yellow}Not time to claim yet!")
                                 end_at = (
@@ -274,14 +281,19 @@ class MatchQuest:
                                 self.log(f"{green}Farm end at: {white}{readable_time}")
                                 end_at_list.append(end_at)
                                 break
+                            get_profile = self.get_profile(token=token, user_id=user_id)
+                            get_balance = self.get_balance(token=token, user_id=user_id)
+                            get_reward = self.get_reward(token=token, user_id=user_id)
                             self.log(f"{yellow}Trying to claim...")
                             claim = self.claim(token=token, user_id=user_id)
                             if claim.status_code != 200:
                                 self.log(f"{red}Cannot claim right now!")
+                                print(claim.content)
                                 break
                             else:
                                 self.log(f"{green}Claim successful!")
                                 self.log(f"{yellow}Trying to farm...")
+                                time.sleep(60)
                                 farming = self.farming(token=token, user_id=user_id)
                                 if farming.status_code != 200:
                                     self.log(f"{red}Cannot process farming!")
