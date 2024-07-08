@@ -44,18 +44,20 @@ class MatchQuest:
 
     def headers(self):
         return {
-            "host": "tgapp-api.matchain.io",
-            "connection": "keep-alive",
-            "accept": "application/json, text/plain, */*",
-            "user-agent": "Mozilla/5.0 (Linux; Android 10; Redmi 4A / 5A Build/QQ3A.200805.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/86.0.4240.185 Mobile Safari/537.36",
-            "content-type": "application/json",
-            "origin": "https://tgapp.matchain.io",
-            "x-requested-with": "tw.nekomimi.nekogram",
-            "sec-fetch-site": "same-site",
-            "sec-fetch-mode": "cors",
-            "sec-fetch-dest": "empty",
-            "referer": "https://tgapp.matchain.io/",
-            "accept-language": "en,en-US;q=0.9",
+            "Accept": "application/json, text/plain, */*",
+            "Accept-Encoding": "gzip, deflate, br, zstd",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Content-Type": "application/json",
+            "Origin": "https://tgapp.matchain.io",
+            "Priority": "u=1, i",
+            "Referer": "https://tgapp.matchain.io/",
+            "Sec-Ch-Ua": '"Not/A)Brand";v="8", "Chromium";v="126", "Google Chrome";v="126"',
+            "Sec-Ch-Ua-Mobile": "?0",
+            "Sec-Ch-Ua-Platform": '"Windows"',
+            "Sec-Fetch-Dest": "empty",
+            "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Site": "same-site",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
         }
 
     def proxies(self, proxy_info):
