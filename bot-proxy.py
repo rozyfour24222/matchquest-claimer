@@ -91,6 +91,19 @@ class MatchQuest:
 
         return response
 
+    def get_profile(self, token, user_id, proxy_info):
+        url = "https://tgapp-api.matchain.io/api/tgapp/v1/user/profile"
+        headers = self.headers()
+        headers["authorization"] = token
+        payload = json.dumps({"uid": user_id})
+        proxies = self.proxies(proxy_info=proxy_info)
+
+        response = requests.post(
+            url=url, headers=headers, data=payload, proxies=proxies
+        )
+
+        return response
+
     def get_balance(self, token, user_id, proxy_info):
         url = "https://tgapp-api.matchain.io/api/tgapp/v1/point/balance"
         headers = self.headers()
@@ -238,13 +251,7 @@ class MatchQuest:
                     login = self.login(data=data, proxy_info=proxy_info).json()
                     token = login["data"]["token"]
                     user_id = login["data"]["user"]["uid"]
-                    first_name = login["data"]["user"]["first_name"]
-                    user_name = login["data"]["user"]["username"]
-                    invite_limit = login["data"]["user"]["invite_limit"]
-                    self.log(
-                        f"{green}User info: {white}{first_name} ({user_name} - {user_id})"
-                    )
-                    self.log(f"{green}Invite limit: {white}{invite_limit}")
+                    self.log(f"{green}User ID: {user_id}")
 
                     # Balance
                     try:
@@ -314,6 +321,15 @@ class MatchQuest:
                                 self.log(f"{green}Farm end at: {white}{readable_time}")
                                 end_at_list.append(end_at)
                                 break
+                            get_profile = self.get_profile(
+                                token=token, user_id=user_id, proxy_info=proxy_info
+                            )
+                            get_balance = self.get_balance(
+                                token=token, user_id=user_id, proxy_info=proxy_info
+                            )
+                            get_reward = self.get_reward(
+                                token=token, user_id=user_id, proxy_info=proxy_info
+                            )
                             self.log(f"{yellow}Trying to claim...")
                             claim = self.claim(
                                 token=token, user_id=user_id, proxy_info=proxy_info
@@ -324,6 +340,7 @@ class MatchQuest:
                             else:
                                 self.log(f"{green}Claim successful!")
                                 self.log(f"{yellow}Trying to farm...")
+                                time.sleep(60)
                                 farming = self.farming(
                                     token=token, user_id=user_id, proxy_info=proxy_info
                                 )
