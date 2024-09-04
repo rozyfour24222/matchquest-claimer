@@ -1,11 +1,11 @@
 {
   "accounts": [
     {
-      "acc_info": "user=",
+      "acc_info": "",
       "proxy_info": "http://user:pass@ip:port"
     },
     {
-      "acc_info": "user=",
+      "acc_info": "",
       "proxy_info": "http://user:pass@ip:port"
     }
   ]
