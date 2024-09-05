@@ -2,6 +2,10 @@ import sys
 
 sys.dont_write_bytecode = True
 
+import urllib3
+
+urllib3.disable_warnings()
+
 from smart_airdrop_claimer import base
 from core.token import get_token
 from core.info import get_info

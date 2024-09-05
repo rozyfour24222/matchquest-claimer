@@ -16,6 +16,7 @@ def claim(token, user_id, proxies=None):
             json=payload,
             proxies=proxies,
             timeout=20,
+            verify=False,
         )
         data = response.json()
         status = data["code"]
@@ -35,6 +36,7 @@ def farming(token, user_id, proxies=None):
             json=payload,
             proxies=proxies,
             timeout=20,
+            verify=False,
         )
         data = response.json()
         status = data["code"]

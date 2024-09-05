@@ -15,6 +15,7 @@ def buy_daily_booster(token, user_id, proxies=None):
             json=payload,
             proxies=proxies,
             timeout=20,
+            verify=False,
         )
         data = response.json()
         return data
@@ -46,6 +47,7 @@ def buy_game_booster(token, user_id, proxies=None):
             json=payload,
             proxies=proxies,
             timeout=20,
+            verify=False,
         )
         data = response.json()
         return data

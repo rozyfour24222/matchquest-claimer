@@ -5,6 +5,8 @@ from urllib.parse import parse_qs
 from smart_airdrop_claimer import base
 from core.headers import headers
 
+import certifi
+
 
 parse_data = lambda data: {key: value[0] for key, value in parse_qs(data).items()}
 
@@ -21,13 +23,19 @@ def get_token(data, proxies=None):
         "tg_login_params": data,
     }
 
-    try:
-        response = requests.post(
-            url=url, headers=headers(), json=payload, proxies=proxies, timeout=20
-        )
-        data = response.json()
-        token = data["data"]["token"]
-        user_id = data["data"]["user"]["uid"]
-        return token, user_id
-    except:
-        return None
+    # try:
+    response = requests.post(
+        url=url,
+        headers=headers(),
+        json=payload,
+        proxies=proxies,
+        timeout=20,
+        verify=False,
+        # verify=False,
+    )
+    data = response.json()
+    token = data["data"]["token"]
+    user_id = data["data"]["user"]["uid"]
+    return token, user_id
+    # except:
+    #     return None

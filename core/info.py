@@ -15,6 +15,7 @@ def get_info(token, user_id, proxies=None):
             json=payload,
             proxies=proxies,
             timeout=20,
+            verify=False,
         )
         data = response.json()
         balance = data["data"] / 1000

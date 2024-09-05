@@ -16,6 +16,7 @@ def get_task(token, user_id, proxies=None):
             json=payload,
             proxies=proxies,
             timeout=20,
+            verify=False,
         )
         data = response.json()
         task_list = data["data"]
@@ -35,6 +36,7 @@ def complete_task(token, user_id, task_code, proxies=None):
             json=payload,
             proxies=proxies,
             timeout=20,
+            verify=False,
         )
         data = response.json()
         status = data["data"]
@@ -54,6 +56,7 @@ def claim_task(token, user_id, task_code, proxies=None):
             json=payload,
             proxies=proxies,
             timeout=20,
+            verify=False,
         )
         data = response.json()
         status = data["data"] == "success"
@@ -97,6 +100,7 @@ def claim_ref(token, user_id, proxies=None):
             json=payload,
             proxies=proxies,
             timeout=20,
+            verify=False,
         )
         data = response.json()
         claimed = data["data"] / 1000

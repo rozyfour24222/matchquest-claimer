@@ -15,6 +15,7 @@ def start_game(token, proxies=None):
             headers=headers(token=token),
             proxies=proxies,
             timeout=20,
+            verify=False,
         )
         data = response.json()
         return data
@@ -33,6 +34,7 @@ def claim_game(token, game_id, point, proxies=None):
             json=payload,
             proxies=proxies,
             timeout=20,
+            verify=False,
         )
         data = response.json()
         return data
